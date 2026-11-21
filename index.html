@@ -764,7 +764,7 @@ button.sb-pill.off { background: #dc2626; box-shadow: none; cursor: default; }
                     <div style="font-size:10px;font-weight:margin-top:1mm">TPS ${esc(tpsNo)}</div>
                     <div style="font-size:9px;margin-bottom:1mm">${esc(timeStr)}</div>
                     <div style="border-top:1px dashed #000;margin:2mm 0"></div>
-                    ${ok ? `<div id="slip-qr" style="width:42mm;height:42mm;margin:0 auto"></div>
+                    ${ok ? `<div id="slip-qr" style="width:34mm;height:34mm;margin:0 auto"></div>
                     <div style="font-family:'Courier New',monospace;font-weight:bold;font-size:13px;margin-top:1mm;letter-spacing:1px">${esc(kode)}</div>`
                         : '<div style="font-weight:bold;font-size:12px;padding:6mm 0">KODE STRUK TIDAK TERSEDIA<br>HUBUNGI PANITIA</div>'}
                     <div style="border-top:1px dashed #000;margin:2mm 0"></div>
@@ -818,7 +818,7 @@ button.sb-pill.off { background: #dc2626; box-shadow: none; cursor: default; }
                 const data = new TextEncoder().encode(o.qr);
                 const n = data.length + 3;
                 raw(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00); // model 2
-                raw(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 6);          // ukuran modul 6 (~1,5 cm margin)
+                raw(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 7);          // ukuran modul 7
                 raw(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31);       // koreksi level M
                 raw(0x1D, 0x28, 0x6B, n & 255, n >> 8, 0x31, 0x50, 0x30);  // simpan data
                 data.forEach(x => out.push(x));
@@ -943,7 +943,7 @@ button.sb-pill.off { background: #dc2626; box-shadow: none; cursor: default; }
             const W = (parseInt(appSet.Lebar_Struk_Dot, 10) || 576) & ~7;
             const qr = qrMatrix(o.qr);
             if (!qr) { lastCetakError = 'QR gagal dibuat (isi terlalu panjang)'; return null; }
-            const mc = qr.getModuleCount(), cell = Math.max(3, Math.floor((W - 240) / mc)), qs = cell * mc;   // jarak tepi kiri kanan ~1,5 cm (120 dot/sisi)
+            const mc = qr.getModuleCount(), cell = Math.max(3, Math.floor((W - 16) / mc)), qs = cell * mc;   // tiap modul kelipatan bulat dot agar tajam
 
             const cv = document.createElement('canvas');
             cv.width = W; cv.height = 780;
@@ -1320,18 +1320,17 @@ button.sb-pill.off { background: #dc2626; box-shadow: none; cursor: default; }
                 do { ctx.font = `${weight} ${f}px ${SANS}`; f--; } while (ctx.measureText(t).width > W - 16 && f > 10);
                 ctx.fillText(t, W / 2, y); y += px + (gap == null ? 6 : gap);
             };
-            const PAD = 80; // jarak tepi kiri kanan ~1 cm (80 dot)
-            const left = (t, weight) => { ctx.textAlign = 'left'; ctx.font = `${weight || 'bold'} 18px ${SANS}`; ctx.fillText(toAscii(t), PAD, y); y += 26; };
+            const left = (t, weight) => { ctx.textAlign = 'left'; ctx.font = `${weight || 'bold'} 18px ${SANS}`; ctx.fillText(toAscii(t), 8, y); y += 26; };
             const dash = () => {
                 ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(PAD, y + 3); ctx.lineTo(W - PAD, y + 3); ctx.stroke(); ctx.restore(); y += 14;
+                ctx.beginPath(); ctx.moveTo(4, y + 3); ctx.lineTo(W - 4, y + 3); ctx.stroke(); ctx.restore(); y += 14;
             };
             const rowLR = (l, v, weight) => {
                 v = String(v); ctx.font = `${weight || 'normal'} 20px ${SANS}`;
                 const vw = ctx.measureText(v).width; let lab = toAscii(l);
-                while (lab.length > 1 && ctx.measureText(lab).width > W - (PAD * 2) - vw - 10) lab = lab.slice(0, -1);
-                ctx.textAlign = 'left'; ctx.fillText(lab, PAD, y);
-                ctx.textAlign = 'right'; ctx.fillText(v, W - PAD, y); y += 27;
+                while (lab.length > 1 && ctx.measureText(lab).width > W - 16 - vw - 10) lab = lab.slice(0, -1);
+                ctx.textAlign = 'left'; ctx.fillText(lab, 8, y);
+                ctx.textAlign = 'right'; ctx.fillText(v, W - 8, y); y += 27;
             };
             center('REKAPITULASI SUARA', 28, 'bold', 6);
             center('PILKADES DESA ' + r.desa, 21, 'normal', 6);
@@ -1357,7 +1356,7 @@ button.sb-pill.off { background: #dc2626; box-shadow: none; cursor: default; }
         function printRekapBrowser(r) {
             const row = (a, b, bold) => `<tr style="${bold ? 'font-weight:bold;border-top:1px solid #000' : ''}"><td>${a}</td><td style="text-align:right">${b}</td></tr>`;
             document.getElementById('print-area').innerHTML = `
-                <div style="width:60mm;margin:0 auto;font-family:Arial,sans-serif;color:#000;font-size:10px;padding:2mm 0">
+                <div style="width:72mm;margin:0 auto;font-family:Arial,sans-serif;color:#000;font-size:10px;padding:2mm 0">
                     <div style="text-align:center;font-weight:bold;font-size:13px">REKAPITULASI SUARA</div>
                     <div style="text-align:center;font-size:11px">PILKADES DESA ${esc(r.desa)}</div>
                     <div style="text-align:center;font-weight:bold;font-size:12px">TPS: ${esc(r.tps)}</div>
